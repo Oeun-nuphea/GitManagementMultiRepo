@@ -1,61 +1,52 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import requests
 import datetime
+import json
 import os
-from zoneinfo import ZoneInfo  # Python 3.9+
+from zoneinfo import ZoneInfo  # ✅ for Cambodia timezone (Python 3.9+)
 
 # ================================================================
 # 🔧 CONFIGURATION
 # ================================================================
-TELEGRAM_TOKEN = "8098069455:AAFXMerG7ofl9Rzwfp5dOBUZGoXuTaA8znI"  # Replace with your bot token
-DEFAULT_CHAT_ID = "-4980462929"         # Default Telegram group chat
-
-# Optional: map specific repos to specific Telegram chats
-REPO_CHATS = {
-    # "username/repo_name": "chat_id",
-    # Example:
-    # "user/repo1": "-1111111111",
-    # "user/repo2": "-2222222222",
-}
-
-TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-
+TELEGRAM_TOKEN = "8439959826:AAHq9KlLaTTLNDxYS7pBaWZZbcLxreqi_0U"
+CHAT_ID = "-1002920854933"  # your Telegram group chat ID
 # ================================================================
 # 🚀 FLASK APP
 # ================================================================
 app = Flask(__name__)
 
-def send_message(repo: str, text: str):
+def send_message(text: str):
     """Send message to Telegram group."""
-    chat_id = REPO_CHATS.get(repo, DEFAULT_CHAT_ID)
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
-        "chat_id": chat_id,
+        "chat_id": CHAT_ID,
         "text": text,
         "parse_mode": "Markdown",
         "disable_web_page_preview": True,
     }
     try:
-        res = requests.post(TELEGRAM_API, json=payload, timeout=10)
+        res = requests.post(url, json=payload, timeout=10)
         res.raise_for_status()
-        print(f"✅ Sent Telegram message for {repo}")
+        print("✅ Sent Telegram message")
     except Exception as e:
-        print(f"❌ Telegram send failed for {repo}: {e}")
+        print(f"❌ Telegram send failed: {e}")
 
 
 @app.route("/", methods=["GET"])
 def home():
-    return {"status": "running", "service": "GitHub → Telegram Bot (Multi-Repo)"}
+    return {"status": "running", "service": "GitHub → Telegram Bot"}
 
 
 @app.route("/github", methods=["POST"])
 def github_webhook():
-    """Handle GitHub events from any repo."""
+    """Handle GitHub events."""
     data = request.json
     event_type = request.headers.get("X-GitHub-Event", "unknown")
-    repo = data.get("repository", {}).get("full_name", "Unknown Repo")
-    print(f"📩 Received event: {event_type} from {repo}")
+    print(f"📩 Received event: {event_type}")
 
-    # Get local time in Cambodia
+    repo = data.get("repository", {}).get("full_name", "Unknown Repo")
+
+    # ✅ Get local time in Cambodia
     kh_time = datetime.datetime.now(ZoneInfo("Asia/Phnom_Penh")).strftime("%Y-%m-%d %H:%M:%S")
 
     # ==============================
@@ -81,36 +72,37 @@ def github_webhook():
             author = c.get("author", {}).get("name", "")
             message.append(f"• {msg} — _{author}_\n🔗 [View Commit]({url})")
 
-        send_message(repo, "\n".join(message))
+        send_message("\n".join(message))
         return {"status": "push received"}
 
     # ==============================
-    # CREATE EVENT
+    # CREATE EVENT (branch/tag)
     # ==============================
     if event_type == "create":
-        ref_type = data.get("ref_type", "")
+        ref_type = data.get("ref_type")
         ref = data.get("ref", "")
         sender = data.get("sender", {}).get("login", "")
         message = f"🌱 *New {ref_type} created:* `{ref}`\n👤 By: {sender}\n📦 Repo: {repo}\n🕒 {kh_time}"
-        send_message(repo, message)
+        send_message(message)
         return {"status": "create received"}
 
     # ==============================
     # DELETE EVENT
     # ==============================
     if event_type == "delete":
-        ref_type = data.get("ref_type", "")
+        ref_type = data.get("ref_type")
         ref = data.get("ref", "")
         sender = data.get("sender", {}).get("login", "")
         message = f"🔥 *{ref_type.capitalize()} deleted:* `{ref}`\n👤 By: {sender}\n📦 Repo: {repo}\n🕒 {kh_time}"
-        send_message(repo, message)
+        send_message(message)
         return {"status": "delete received"}
 
     # ==============================
-    # UNKNOWN EVENT
+    # DEFAULT UNKNOWN EVENT
     # ==============================
-    send_message(repo, f"ℹ️ *Unhandled event:* `{event_type}` from *{repo}*\n🕒 {kh_time}")
+    send_message(f"ℹ️ *Unhandled event:* `{event_type}` from *{repo}*\n🕒 {kh_time}")
     return {"status": "unhandled event"}
+
 
 # ================================================================
 # 🧰 RUN SERVER
