@@ -98,11 +98,36 @@ def github_webhook():
         message = f"🔥 *{ref_type.capitalize()} deleted:* `{ref}`\n👤 By: {sender}\n📦 Repo: {repo}\n🕒 {kh_time}"
         send_message(message)
         return {"status": "delete received"}
+    
+    # ==============================
+    # PULL REQUEST MERGED EVENT
+    # ==============================
+    if event_type == "pull_request":
+        action = data.get("action")
+        pr = data.get("pull_request", {})
+        sender = data.get("sender", {}).get("login", "")
+        pr_title = pr.get("title", "")
+        pr_number = pr.get("number", "")
+        merged = pr.get("merged", False)
+
+        # Only alert if merged
+        if action == "closed" and merged:
+            message = (
+                f"✅ Pull Request *#{pr_number} {pr_title}* merged\n"
+                f"👤 By: {sender}\n"
+                f"📦 Repo: {repo}\n"
+                f"🕒 {kh_time}"
+            )
+            send_message(message)
+            return {"status": "pull_request merged received"}
+        else:
+            # Ignore other pull request actions
+            return {"status": f"pull_request {action} ignored"}
 
     # ==============================
     # DEFAULT UNKNOWN EVENT
     # ==============================
-    send_message(f"ℹ️ *Unhandled event:* `{event_type}` from *{repo}*\n🕒 {kh_time}")
+    send_message(f"⚠️ *Unhandled event:* `{event_type}` from *{repo}*\n🕒 {kh_time}")
     return {"status": "unhandled event"}
 
 
