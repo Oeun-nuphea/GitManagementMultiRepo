@@ -100,25 +100,37 @@ def github_webhook():
         return {"status": "delete received"}
 
     # ==============================
-    # PULL REQUEST MERGED ALERT ONLY
+    # MERGE ALERT ONLY (safe)
     # ==============================
     if event_type == "pull_request":
         pr = data.get("pull_request", {})
         if data.get("action") == "closed" and pr.get("merged", False):
+            # Unique delivery ID to prevent duplicate alerts
+            delivery_id = request.headers.get("X-GitHub-Delivery")
+            if not hasattr(app, "recent_deliveries"):
+                app.recent_deliveries = set()
+            if delivery_id in app.recent_deliveries:
+                print(f"⚙️ Duplicate merge webhook ignored: {delivery_id}")
+                return {"status": "duplicate merge ignored"}
+            app.recent_deliveries.add(delivery_id)
+
+            # Merge info
             pr_number = pr.get("number")
             head_branch = pr.get("head", {}).get("ref")
             base_branch = pr.get("base", {}).get("ref")
             sender = data.get("sender", {}).get("login")
             kh_time = datetime.datetime.now(ZoneInfo("Asia/Phnom_Penh")).strftime("%Y-%m-%d %H:%M:%S")
 
+            # Telegram message
             message = (
-                f"🎉 Pull Request #{pr_number} merged successfully!\n"
-                f"🌿 From: {head_branch} → {base_branch}\n"
+                f"🎉 Merge completed!\n"
+                f"🌿 Branch: `{head_branch}` → `{base_branch}`\n"
                 f"👤 By: {sender}\n"
                 f"🕒 {kh_time}"
             )
             send_message(message)
-            return {"status": "pull_request merged received"}
+            return {"status": "merge alert sent"}
+
 
     
     # ==============================
