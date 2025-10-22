@@ -99,25 +99,6 @@ def github_webhook():
         send_message(message)
         return {"status": "delete received"}
 
-    # ==============================
-    # PULL REQUEST OPENED EVENT
-    # ==============================
-    if event_type == "pull_request" and data.get("action") == "opened":
-        pr = data.get("pull_request", {})
-        sender = data.get("sender", {}).get("login", "")
-        pr_number = pr.get("number", "")
-        head_branch = pr.get("head", {}).get("ref", "")
-        base_branch = pr.get("base", {}).get("ref", "")
-
-        message = (
-            f"🟢 Pull Request *#{pr_number} {head_branch} → {base_branch}* opened\n"
-            f"👤 By: {sender}\n"
-            f"📦 Repo: {repo}\n"
-            f"🕒 {kh_time}"
-        )
-        send_message(message)
-        return {"status": "pull_request opened received"}
-
 
     # ==============================
     # PULL REQUEST MERGED EVENT
@@ -156,7 +137,24 @@ def github_webhook():
             send_message(message)
             return {"status": "pull_request merged received"}
 
+    # ==============================
+    # PULL REQUEST OPENED EVENT
+    # ==============================
+    if event_type == "pull_request" and data.get("action") == "opened":
+        pr = data.get("pull_request", {})
+        sender = data.get("sender", {}).get("login", "")
+        pr_number = pr.get("number", "")
+        head_branch = pr.get("head", {}).get("ref", "")
+        base_branch = pr.get("base", {}).get("ref", "")
 
+        message = (
+            f"🟢 Pull Request *#{pr_number} {head_branch} → {base_branch}* opened\n"
+            f"👤 By: {sender}\n"
+            f"📦 Repo: {repo}\n"
+            f"🕒 {kh_time}"
+        )
+        send_message(message)
+        return {"status": "pull_request opened received"}
 
 
     # ==============================
