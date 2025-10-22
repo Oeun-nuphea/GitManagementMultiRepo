@@ -109,12 +109,14 @@ def github_webhook():
         pr_title = pr.get("title", "")
         pr_number = pr.get("number", "")
         merged = pr.get("merged", False)
+        head_branch = pr.get("head", {}).get("ref", "")
+        base_branch = pr.get("base", {}).get("ref", "")
 
         # Only alert if merged
         if action == "closed" and merged:
             message = (
-                f"✅ Pull Request *#{pr_number} {pr_title}* merged\n"
-                f"👤 By: {sender}\n"
+                f"🎉 Pull Request *#{pr_number} {head_branch} → {base_branch}* merged\n"
+                f"🎃 By: {sender}\n"
                 f"📦 Repo: {repo}\n"
                 f"🕒 {kh_time}"
             )
@@ -123,6 +125,7 @@ def github_webhook():
         else:
             # Ignore other pull request actions
             return {"status": f"pull_request {action} ignored"}
+    return {"status": f"pull_request {action} ignored"}
 
     # ==============================
     # DEFAULT UNKNOWN EVENT
