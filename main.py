@@ -122,23 +122,40 @@ def github_webhook():
     # ==============================
     # PULL REQUEST MERGED EVENT
     # ==============================
-    if event_type == "pull_request" and data.get("action") == "closed" and data.get("pull_request", {}).get("merged", False):
+    if event_type == "pull_request":
+        action = data.get("action")
         pr = data.get("pull_request", {})
-        sender = data.get("sender", {}).get("login", "")
-        pr_number = pr.get("number", "")
-        head_branch = pr.get("head", {}).get("ref", "")
-        base_branch = pr.get("base", {}).get("ref", "")
+        merged = pr.get("merged", False)
 
-        message = (
-            f"🧺 *Repo:* {repo}\n"
-            f"🎉 *Pull Request #{pr_number} merged successfully*\n"
-            f"🌿 *From:* `{head_branch}` → `{base_branch}`\n"
-            f"👤 *By:* {sender}\n"
-            f"🧭 {kh_time}"
-        )
+        # ✅ Only send once for merged PRs
+        if action == "closed" and merged:
+            pr_number = pr.get("number", "")
+            head_branch = pr.get("head", {}).get("ref", "")
+            base_branch = pr.get("base", {}).get("ref", "")
+            sender = data.get("sender", {}).get("login", "")
 
-        send_message(message)
-        return {"status": "pull_request merged received"}
+            # To prevent double alerts, ensure it's not retried by checking a unique delivery ID
+            delivery_id = request.headers.get("X-GitHub-Delivery")
+            if not hasattr(app, "recent_deliveries"):
+                app.recent_deliveries = set()
+
+            if delivery_id in app.recent_deliveries:
+                print(f"⚙️ Skipping duplicate delivery {delivery_id}")
+                return {"status": "duplicate merge ignored"}
+
+            app.recent_deliveries.add(delivery_id)
+
+            message = (
+                f"🧺 *Repo:* {repo}\n"
+                f"🎉 *Pull Request #{pr_number} merged successfully!*\n"
+                f"🌿 *From:* `{head_branch}` → `{base_branch}`\n"
+                f"👤 *By:* {sender}\n"
+                f"🧭 {kh_time}"
+            )
+
+            send_message(message)
+            return {"status": "pull_request merged received"}
+
 
 
 
