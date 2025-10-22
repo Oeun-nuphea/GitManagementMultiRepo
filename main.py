@@ -130,13 +130,16 @@ def github_webhook():
         base_branch = pr.get("base", {}).get("ref", "")
 
         message = (
-            f"🎉 Pull Request *#{pr_number} {head_branch} → {base_branch}* merged\n"
-            f"🎃 By: {sender}\n"
-            f"📦 Repo: {repo}\n"
-            f"🕒 {kh_time}"
+            f"🧺 *Repo:* {repo}\n"
+            f"🎉 *Pull Request #{pr_number} merged successfully*\n"
+            f"🌿 *From:* `{head_branch}` → `{base_branch}`\n"
+            f"👤 *By:* {sender}\n"
+            f"🧭 {kh_time}"
         )
+
         send_message(message)
         return {"status": "pull_request merged received"}
+
 
 
     # ==============================
