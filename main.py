@@ -100,37 +100,27 @@ def github_webhook():
         return {"status": "delete received"}
 
     # ==============================
-    # MERGE ALERT ONLY (safe)
+    # PULL REQUEST MERGE EVENT
     # ==============================
     if event_type == "pull_request":
+        action = data.get("action")
         pr = data.get("pull_request", {})
-        if data.get("action") == "closed" and pr.get("merged", False):
-            # Unique delivery ID to prevent duplicate alerts
-            # delivery_id = request.headers.get("X-GitHub-Delivery")
-            # if not hasattr(app, "recent_deliveries"):
-            #     app.recent_deliveries = set()
-            # if delivery_id in app.recent_deliveries:
-            #     print(f"⚙️ Duplicate merge webhook ignored: {delivery_id}")
-            #     return {"status": "duplicate merge ignored"}
-            # app.recent_deliveries.add(delivery_id)
+        pr_title = pr.get("title", "")
+        pr_url = pr.get("html_url", "")
+        merged = pr.get("merged", False)
+        sender = data.get("sender", {}).get("login", "")
 
-            # Merge info
-            # pr_number = pr.get("number")
-            head_branch = pr.get("head", {}).get("ref")
-            base_branch = pr.get("base", {}).get("ref")
-            sender = data.get("sender", {}).get("login")
-            kh_time = datetime.datetime.now(ZoneInfo("Asia/Phnom_Penh")).strftime("%Y-%m-%d %H:%M:%S")
-
-            # Telegram message
+        if action == "closed" and merged:
             message = (
-                f"🎉 Merge completed!\n"
-                f"🌿 Branch: `{head_branch}` → `{base_branch}`\n"
+                f"✅ *Pull Request Merged!*\n"
+                f"📦 Repo: {repo}\n"
                 f"👤 By: {sender}\n"
+                f"📝 Title: {pr_title}\n"
+                f"🔗 [View PR]({pr_url})\n"
                 f"🕒 {kh_time}"
             )
             send_message(message)
-            return {"status": "merge alert sent"}
-
+            return {"status": "PR merge received"}
 
     
     # ==============================
