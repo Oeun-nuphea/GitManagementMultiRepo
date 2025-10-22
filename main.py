@@ -106,16 +106,16 @@ def github_webhook():
         pr = data.get("pull_request", {})
         if data.get("action") == "closed" and pr.get("merged", False):
             # Unique delivery ID to prevent duplicate alerts
-            delivery_id = request.headers.get("X-GitHub-Delivery")
-            if not hasattr(app, "recent_deliveries"):
-                app.recent_deliveries = set()
-            if delivery_id in app.recent_deliveries:
-                print(f"⚙️ Duplicate merge webhook ignored: {delivery_id}")
-                return {"status": "duplicate merge ignored"}
-            app.recent_deliveries.add(delivery_id)
+            # delivery_id = request.headers.get("X-GitHub-Delivery")
+            # if not hasattr(app, "recent_deliveries"):
+            #     app.recent_deliveries = set()
+            # if delivery_id in app.recent_deliveries:
+            #     print(f"⚙️ Duplicate merge webhook ignored: {delivery_id}")
+            #     return {"status": "duplicate merge ignored"}
+            # app.recent_deliveries.add(delivery_id)
 
             # Merge info
-            pr_number = pr.get("number")
+            # pr_number = pr.get("number")
             head_branch = pr.get("head", {}).get("ref")
             base_branch = pr.get("base", {}).get("ref")
             sender = data.get("sender", {}).get("login")
