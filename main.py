@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo  # ✅ for Cambodia timezone (Python 3.9+)
 # ================================================================
 TELEGRAM_TOKEN = "8439959826:AAHq9KlLaTTLNDxYS7pBaWZZbcLxreqi_0U"
 CHAT_ID = "-1002920854933"  # your Telegram group chat ID
+TOPIC_ID = 221
 # ================================================================
 # 🚀 FLASK APP
 # ================================================================
@@ -20,6 +21,7 @@ def send_message(text: str):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
+        "message_thread_id": TOPIC_ID,
         "text": text,
         "parse_mode": "Markdown",
         "disable_web_page_preview": True,
