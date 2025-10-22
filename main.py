@@ -99,31 +99,43 @@ def github_webhook():
         send_message(message)
         return {"status": "delete received"}
 
-
     # ==============================
-    # PULL REQUEST MERGED EVENT
+    # PULL REQUEST EVENTS
     # ==============================
     if event_type == "pull_request":
         action = data.get("action")
         pr = data.get("pull_request", {})
+        sender = data.get("sender", {}).get("login", "")
+        pr_number = pr.get("number", "")
+        head_branch = pr.get("head", {}).get("ref", "")
+        base_branch = pr.get("base", {}).get("ref", "")
         merged = pr.get("merged", False)
 
-        # ✅ Only send once for merged PRs
-        if action == "closed" and merged:
-            pr_number = pr.get("number", "")
-            head_branch = pr.get("head", {}).get("ref", "")
-            base_branch = pr.get("base", {}).get("ref", "")
-            sender = data.get("sender", {}).get("login", "")
+        # ---------------------------
+        # 1️⃣ PR Opened
+        # ---------------------------
+        if action == "opened":
+            message = (
+                f"🟢 Pull Request *#{pr_number}*\n"
+                f"🔀 *{head_branch} → {base_branch}* opened\n"
+                f"👤 By: {sender}\n"
+                f"📦 Repo: {repo}\n"
+                f"🕒 {kh_time}"
+            )
+            send_message(message)
+            return {"status": "pull_request opened received"}
 
-            # To prevent double alerts, ensure it's not retried by checking a unique delivery ID
+        # ---------------------------
+        # 2️⃣ PR Merged
+        # ---------------------------
+        elif action == "closed" and merged:
+            # prevent duplicate merges using delivery ID
             delivery_id = request.headers.get("X-GitHub-Delivery")
             if not hasattr(app, "recent_deliveries"):
                 app.recent_deliveries = set()
-
             if delivery_id in app.recent_deliveries:
                 print(f"⚙️ Skipping duplicate delivery {delivery_id}")
                 return {"status": "duplicate merge ignored"}
-
             app.recent_deliveries.add(delivery_id)
 
             message = (
@@ -131,30 +143,17 @@ def github_webhook():
                 f"🎉 *Pull Request #{pr_number} merged successfully!*\n"
                 f"🌿 *From:* `{head_branch}` → `{base_branch}`\n"
                 f"👤 *By:* {sender}\n"
-                f"🧭 {kh_time}"
+                f"🕒 {kh_time}"
             )
-
             send_message(message)
             return {"status": "pull_request merged received"}
 
-    # ==============================
-    # PULL REQUEST OPENED EVENT
-    # ==============================
-    if event_type == "pull_request" and data.get("action") == "opened":
-        pr = data.get("pull_request", {})
-        sender = data.get("sender", {}).get("login", "")
-        pr_number = pr.get("number", "")
-        head_branch = pr.get("head", {}).get("ref", "")
-        base_branch = pr.get("base", {}).get("ref", "")
+        # ---------------------------
+        # Ignore other PR actions
+        # ---------------------------
+        else:
+            return {"status": f"pull_request {action} ignored"}
 
-        message = (
-            f"🟢 Pull Request *#{pr_number} {head_branch} → {base_branch}* opened\n"
-            f"👤 By: {sender}\n"
-            f"📦 Repo: {repo}\n"
-            f"🕒 {kh_time}"
-        )
-        send_message(message)
-        return {"status": "pull_request opened received"}
 
 
     # ==============================
