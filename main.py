@@ -98,50 +98,46 @@ def github_webhook():
         message = f"🔥 *{ref_type.capitalize()} deleted:* `{ref}`\n👤 By: {sender}\n📦 Repo: {repo}\n🕒 {kh_time}"
         send_message(message)
         return {"status": "delete received"}
-    
+
     # ==============================
-    # PULL REQUEST MERGED EVENT
+    # PULL REQUEST OPENED EVENT
     # ==============================
-    if event_type == "pull_request":
-        action = data.get("action")
+    if event_type == "pull_request" and data.get("action") == "opened":
         pr = data.get("pull_request", {})
         sender = data.get("sender", {}).get("login", "")
         pr_number = pr.get("number", "")
         head_branch = pr.get("head", {}).get("ref", "")
         base_branch = pr.get("base", {}).get("ref", "")
-        merged = pr.get("merged", False)
 
-        # ---------------------------
-        # 1️⃣ PR Opened
-        # ---------------------------
-        if action == "opened":
-            message = (
-                f"🟢 Pull Request *#{pr_number} {head_branch} → {base_branch}* opened\n"
-                f"👤 By: {sender}\n"
-                f"📦 Repo: {repo}\n"
-                f"🕒 {kh_time}"
-            )
-            send_message(message)
-            return {"status": "pull_request opened received"}
+        message = (
+            f"🟢 Pull Request *#{pr_number} {head_branch} → {base_branch}* opened\n"
+            f"👤 By: {sender}\n"
+            f"📦 Repo: {repo}\n"
+            f"🕒 {kh_time}"
+        )
+        send_message(message)
+        return {"status": "pull_request opened received"}
 
-        # ---------------------------
-        # 2️⃣ PR Merged
-        # ---------------------------
-        elif action == "closed" and merged:
-            message = (
-                f"🎉 Pull Request *#{pr_number} {head_branch} → {base_branch}* merged\n"
-                f"🎃 By: {sender}\n"
-                f"📦 Repo: {repo}\n"
-                f"🕒 {kh_time}"
-            )
-            send_message(message)
-            return {"status": "pull_request merged received"}
 
-        # ---------------------------
-        # Ignore other actions
-        # ---------------------------
-        else:
-            return {"status": f"pull_request {action} ignored"}
+    # ==============================
+    # PULL REQUEST MERGED EVENT
+    # ==============================
+    if event_type == "pull_request" and data.get("action") == "closed" and data.get("pull_request", {}).get("merged", False):
+        pr = data.get("pull_request", {})
+        sender = data.get("sender", {}).get("login", "")
+        pr_number = pr.get("number", "")
+        head_branch = pr.get("head", {}).get("ref", "")
+        base_branch = pr.get("base", {}).get("ref", "")
+
+        message = (
+            f"🎉 Pull Request *#{pr_number} {head_branch} → {base_branch}* merged\n"
+            f"🎃 By: {sender}\n"
+            f"📦 Repo: {repo}\n"
+            f"🕒 {kh_time}"
+        )
+        send_message(message)
+        return {"status": "pull_request merged received"}
+
 
     # ==============================
     # DEFAULT UNKNOWN EVENT
