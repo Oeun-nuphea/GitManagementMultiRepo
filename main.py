@@ -3,13 +3,13 @@ import requests
 import datetime
 import json
 import os
-from zoneinfo import ZoneInfo  # ✅ for Cambodia timezone (Python 3.9+)
+from zoneinfo import ZoneInfo  
 
 # ================================================================
 # 🔧 CONFIGURATION
 # ================================================================
 TELEGRAM_TOKEN = "8439959826:AAHq9KlLaTTLNDxYS7pBaWZZbcLxreqi_0U"
-CHAT_ID = "-1002920854933"  # your Telegram group chat ID
+CHAT_ID = "-1002920854933"  
 TOPIC_ID = 221
 # ================================================================
 # 🚀 FLASK APP
@@ -102,24 +102,28 @@ def github_webhook():
     # ==============================
     # PULL REQUEST MERGE EVENT
     # ==============================
-    # if event_type == "pull_request":
-    #     action = data.get("action")
-    #     pr = data.get("pull_request", {})
-    #     merged = pr.get("merged", False)
-    #     sender = data.get("sender", {}).get("login", "")
+    if event_type == "pull_request":
+        pr = data.get("pull_request", {})
+        action = data.get("action", "")
+        merged = pr.get("merged")  # returns True/False or None
 
-    #     if action == "closed" and merged:
-    #         message = (
-    #             f"✅ *Pull Request Merged!*\n"
-    #             f"📦 Repo: {repo}\n"
-    #             f"👤 By: {sender}\n"
-    #             f"📝 Title: {pr.get('title','')}\n"
-    #             f"🔗 [View PR]({pr.get('html_url','')})\n"
-    #             f"🕒 {kh_time}"
-    #         )
-    #         send_message(message)
-    #         return {"status": "PR merge received"}  # ← return here immediately
+        if action == "closed" and merged:
+            sender = data.get("sender", {}).get("login", "")
+            pr_title = pr.get("title", "")
+            pr_url = pr.get("html_url", "")
+            message = (
+                f"✅ *Pull Request Merged!*\n"
+                f"📦 Repo: {repo}\n"
+                f"👤 By: {sender}\n"
+                f"📝 Title: {pr_title}\n"
+                f"🔗 [View PR]({pr_url})\n"
+                f"🕒 {kh_time}"
+            )
+            send_message(message)
+            return {"status": "PR merge received"}
 
+        else:
+            print("⚠️ Pull request not merged or closed without merge")
 
     
     # ==============================
