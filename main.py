@@ -105,8 +105,6 @@ def github_webhook():
     if event_type == "pull_request":
         action = data.get("action")
         pr = data.get("pull_request", {})
-        pr_title = pr.get("title", "")
-        pr_url = pr.get("html_url", "")
         merged = pr.get("merged", False)
         sender = data.get("sender", {}).get("login", "")
 
@@ -115,12 +113,13 @@ def github_webhook():
                 f"✅ *Pull Request Merged!*\n"
                 f"📦 Repo: {repo}\n"
                 f"👤 By: {sender}\n"
-                f"📝 Title: {pr_title}\n"
-                f"🔗 [View PR]({pr_url})\n"
+                f"📝 Title: {pr.get('title','')}\n"
+                f"🔗 [View PR]({pr.get('html_url','')})\n"
                 f"🕒 {kh_time}"
             )
             send_message(message)
-            return {"status": "PR merge received"}
+            return {"status": "PR merge received"}  # ← return here immediately
+
 
     
     # ==============================
