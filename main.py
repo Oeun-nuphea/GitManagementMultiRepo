@@ -104,7 +104,7 @@ def github_webhook():
             if msg_first.startswith("Merge pull request"):
                 message.append(f"\n• {msg_first} — _{author}_\n🔗 [View Commit]({url})")
             else:
-                message.append(f"• {msg_first} — _{author}_\n🔗 [View Commit]({url})\n")
+                message.append(f"• {msg_first} — _{author}_\n🔗 [View Commit]({url})")
 
         send_message("\n".join(message))
         return {"status": "push received"}
