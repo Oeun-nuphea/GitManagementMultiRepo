@@ -54,6 +54,32 @@ def github_webhook():
     # ==============================
     # PUSH EVENT
     # ==============================
+    # if event_type == "push":
+    #     pusher = data.get("pusher", {}).get("name", "Someone")
+    #     branch = data.get("ref", "refs/heads/main").split("/")[-1]
+    #     commits = data.get("commits", [])
+
+    #     message = [
+    #         f"🧺 *Repo:* {repo}",
+    #         f"🎃 *Pushed by:* {pusher}",
+    #         f"🌿 *Branch:* `{branch}`",
+    #         f"🧭 {kh_time}",
+    #         "",
+    #         f"🚀 *{len(commits)} commit(s) pushed:*",
+    #     ]
+
+    #     for c in commits:
+    #         msg = c.get("message", "")
+    #         url = c.get("url", "")
+    #         author = c.get("author", {}).get("name", "")
+    #         message.append(f"• {msg} — _{author}_\n🔗 [View Commit]({url})")
+
+    #     send_message("\n".join(message))
+    #     return {"status": "push received"}
+
+    # ==============================
+    # PUSH EVENT
+    # ==============================
     if event_type == "push":
         pusher = data.get("pusher", {}).get("name", "Someone")
         branch = data.get("ref", "refs/heads/main").split("/")[-1]
@@ -69,13 +95,20 @@ def github_webhook():
         ]
 
         for c in commits:
-            msg = c.get("message", "")
+            msg_full = c.get("message", "").strip()
+            msg_first = msg_full.split("\n")[0]  # take only the first line (avoid duplicate “update” lines)
             url = c.get("url", "")
             author = c.get("author", {}).get("name", "")
-            message.append(f"• {msg} — _{author}_\n🔗 [View Commit]({url})")
+
+            # Add spacing and style for merge commits
+            if msg_first.startswith("Merge pull request"):
+                message.append(f"\n• {msg_first} — _{author}_\n🔗 [View Commit]({url})")
+            else:
+                message.append(f"• {msg_first} — _{author}_\n🔗 [View Commit]({url})\n")
 
         send_message("\n".join(message))
         return {"status": "push received"}
+
 
     # ==============================
     # CREATE EVENT (branch/tag)
