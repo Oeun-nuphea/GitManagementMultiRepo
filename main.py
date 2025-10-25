@@ -102,29 +102,29 @@ def github_webhook():
     # ==============================
     # PULL REQUEST EVENT
     # ==============================
-    if event_type == "pull_request":
-        pr = data.get("pull_request", {})
-        action = data.get("action", "")
-        merged = pr.get("merged", False)
+    # if event_type == "pull_request":
+    #     pr = data.get("pull_request", {})
+    #     action = data.get("action", "")
+    #     merged = pr.get("merged", False)
 
-        if action == "closed" and merged:
-            sender = data.get("sender", {}).get("login", "")
-            pr_title = pr.get("title", "")
-            pr_url = pr.get("html_url", "")
-            message = (
-                f"✅ *Pull Request Merged!*\n"
-                f"📦 Repo: {repo}\n"
-                f"👤 By: {sender}\n"
-                f"📝 Title: {pr_title}\n"
-                f"🔗 [View PR]({pr_url})\n"
-                f"🕒 {kh_time}"
-            )
-            send_message(message)
-            return {"status": "PR merge received"}
+    #     if action == "closed" and merged:
+    #         sender = data.get("sender", {}).get("login", "")
+    #         pr_title = pr.get("title", "")
+    #         pr_url = pr.get("html_url", "")
+    #         message = (
+    #             f"✅ *Pull Request Merged!*\n"
+    #             f"📦 Repo: {repo}\n"
+    #             f"👤 By: {sender}\n"
+    #             f"📝 Title: {pr_title}\n"
+    #             f"🔗 [View PR]({pr_url})\n"
+    #             f"🕒 {kh_time}"
+    #         )
+    #         send_message(message)
+    #         return {"status": "PR merge received"}
 
-        else:
-            print("⚠️ Pull request not merged or closed without merge")
-            return {"status": "PR not merged"}
+    #     else:
+    #         print("⚠️ Pull request not merged or closed without merge")
+    #         return {"status": "PR not merged"}
 
     # DEFAULT UNKNOWN EVENT
     print(f"⚠️ Unhandled event: {event_type} from {repo}")
