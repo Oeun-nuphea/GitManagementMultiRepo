@@ -7,8 +7,9 @@ from zoneinfo import ZoneInfo  # Python 3.9+
 # ================================================================
 # 🔧 CONFIGURATION
 # ================================================================
-TELEGRAM_TOKEN = "8098069455:AAFXMerG7ofl9Rzwfp5dOBUZGoXuTaA8znI"  # Replace with your bot token
-DEFAULT_CHAT_ID = "-4980462929"         # Default Telegram group chat
+# TELEGRAM_TOKEN = "8098069455:AAFXMerG7ofl9Rzwfp5dOBUZGoXuTaA8znI"
+TELEGRAM_TOKEN = "8036205736:AAGrzVM2AF3qO8HXVqpl_cP0g_0M6zIhgII" 
+DEFAULT_CHAT_ID = "-4980462929"
 
 # Optional: map specific repos to specific Telegram chats
 REPO_CHATS = {
